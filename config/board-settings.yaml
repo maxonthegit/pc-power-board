@@ -1,0 +1,53 @@
+# Basic board properties; check carefully for compatibility with your board
+# See also https://esphome.io/com nents/#supported-microcontrollers
+esp32:
+  variant: esp32
+  framework:
+    type: esp-idf
+    advanced:
+      # Chip revision can be checked in the board boot log. Setting
+      # minimum revision to 3.1, as suggested in the boot log, reduces
+      # binary size by eliminating some workarounds required by previous
+      # chip revisions
+      minimum_chip_revision: '3.1'
+
+
+# Disable flushing data to internal flash
+preferences:
+  flash_write_interval: never
+
+
+# Enable logging
+logger:
+  level: INFO
+
+
+# Wi-Fi networking
+wifi:
+  networks:
+    - ssid: !secret wifi_ssid
+      password: !secret wifi_password
+
+
+# Internal clock synchronization via NTP
+time:
+  - platform: sntp
+    id: sntp_time
+    timezone: Europe/Rome
+    servers:
+      - 0.pool.ntp.org
+      - 1.pool.ntp.org
+      - 2.pool.ntp.org
+
+
+# Interfaces for communicating over the network
+# 1) ESPHome native API, with encryption
+api:
+  encryption:
+    key: !secret api_key
+
+# 2) Over The Air interface, for remote firmware flashing
+ota:
+  - platform: esphome
+    id: board_ota
+    password: !secret ota_password

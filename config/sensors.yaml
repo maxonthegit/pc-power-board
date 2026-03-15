@@ -1,0 +1,123 @@
+######################################
+# INPUT - Power LED
+binary_sensor:
+  - platform: gpio
+    id: power_led    
+    pin:
+      number: ${power_led_gpio_pin}
+      # Invert logic because low means power LED is lit
+      inverted: true
+      mode:
+        input: true
+        pullup: true
+    name: "Power LED"
+
+
+######################################
+# OUTPUT - Power button
+
+# The following script implements the "auto-off" logic of the remote power
+# button
+script:
+  id: power_button_auto_off
+  mode: restart
+  parameters:
+    delay_time_ms: int
+  then:
+    - switch.turn_on: power_button
+    - delay: !lambda return delay_time_ms;
+    - switch.turn_off: power_button
+
+# The physical switch is not directly exposed to OpenHAB, because some logic
+# needs to be added by the following templates. Omitting the switch 'name' is
+# enough to make it hidden ("internal")
+switch:
+  - platform: gpio
+    id: power_button
+    pin:
+      number: ${power_button_gpio_pin}
+      mode:
+        output: true
+        pullup: false
+        pulldown: false
+
+# Exposed switches follow
+  - &switch_shortpress      # Anchor
+    platform: template
+    id: power_switch_short
+    name: "Power button (momentary press)"
+    optimistic: true
+    turn_on_action:
+      - script.execute:
+          id: power_button_auto_off
+          delay_time_ms: 200
+      - script.wait: power_button_auto_off
+      - switch.turn_off: power_switch_short
+    turn_off_action:
+      - switch.turn_off: power_button
+
+  - <<: *switch_shortpress  # Alias, allowing to override only modified values
+    id: power_switch_long
+    name: "Power button (12s long press)"
+    turn_on_action:
+      - script.execute:
+          id: power_button_auto_off
+          delay_time_ms: 12000
+      - script.wait: power_button_auto_off
+      - switch.turn_off: power_switch_long
+
+
+######################################
+# OTHER - Useful buttons and sensors to control the board
+button:
+  - platform: restart
+    name: "Restart ESP32 MCU"
+
+sensor:
+    - platform: wifi_signal
+      name: "WiFi Signal Level"
+      update_interval: 60s
+      internal: false
+
+    - platform: uptime
+      type: seconds
+      id: uptime_internal
+      update_interval: 60s
+      accuracy_decimals: 2
+      on_value:
+        then:
+          lambda: |-
+            uint32_t up = id(uptime_internal).state;
+            int days = 0, hours = 0, minutes = 0;
+            days = trunc(up / 86400);
+            up -= days * 86400;
+            hours = trunc(up / 3600);
+            up -= hours * 3600;
+            minutes = trunc(up / 60);
+
+            char buffer[45];
+            sprintf(buffer, "%u days %u hours %u minutes", days, hours, minutes);
+            id(uptime_custom).publish_state(buffer);
+
+text_sensor:
+  - platform: template
+    name: "Uptime"
+    id: uptime_custom
+
+  - platform: template
+    name: "Current time"
+    id: timedate
+    update_interval: 60s
+    lambda: |-
+      if (id(sntp_time).now().is_valid()) {
+        char timestamp[17];
+        time_t ts = id(sntp_time).now().timestamp;
+        strftime (timestamp, sizeof(timestamp), "%d/%m/%Y %H:%M", localtime(&ts));
+        return {timestamp};
+      }
+      else {
+        return {"Time not set"};
+      }
+
+  - platform: version
+    name: "ESPHome Version"

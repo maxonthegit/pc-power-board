@@ -1,0 +1,25 @@
+esphome:
+  name: ${boardname}
+  friendly_name: ${boardname}
+  # Update OTA password, if required
+  # See https://esphome.io/components/ota/esphome/#changing-an-existing-password
+  # for more information
+  #on_boot:
+  #  - lambda: |-
+  #      id(board_ota).set_auth_password("NEW_PASSWORD");
+
+packages:
+  - !include board-settings.yaml
+  - !include sensors.yaml
+
+wifi:
+  manual_ip:
+    static_ip: ${ipaddress}
+    subnet: ${ipnetmask}
+    gateway: ${ipgateway}
+    dns1: 8.8.8.8
+
+substitutions:
+  # The following input/output controlling GPIO pins are used by default
+  power_led_gpio_pin: GPIO18
+  power_button_gpio_pin: GPIO26
