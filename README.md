@@ -96,7 +96,7 @@ trigger a forced workstation shutdown.
 
 
 
-## Features & Limitations
+# Features & Limitations
 :white_check_mark: Here is a list of reasons why this little project may come
 handy:
   * always-on low-power system, making out-of-band monitoring and activation of
