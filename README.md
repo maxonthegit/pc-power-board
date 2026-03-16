@@ -503,6 +503,7 @@ this circuit. Personally, I am steadily running it on a breadboard, and I am
 totally satisfied this way.
 
 [<img src="images/circuit-diagram.png">][live-circuit]
+[Large image](images/circuit-diagram.png)
 
 :bulb: _Tip_ &mdash; You can click on the circuit diagram above to open a live
 interactive simulation of the current flows using the excellent [circuit
