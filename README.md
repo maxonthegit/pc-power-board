@@ -23,16 +23,12 @@ guide. Due to my own technological setup, I will only be covering the case of
 OpenHAB.
 
 
-<div style="border: solid lightsalmon 2px; padding: 5px">
-
 # :warning: Disclaimer :warning:
 This is a home-made project leveraging electrical connections to your desktop
 computer. Although its design makes it beyond substantially safe to be operated,
 no responsibility is assumed for any damage that might derive from implementing
 it.\
 No reasons to alarm, but you know what you are doing.
-
-</div>
 
 
 # Table of Contents
@@ -516,22 +512,22 @@ repository includes the [circuit source file](pc-power-board.cjs1), to be used
 with the [standalone off-line version][circuitjs-offline] of the same simulator.
 
 As you can see, the diagram consists of 3 blocks:
-* The <span style="color: #0c334e">blue</span> block in the lower right, named
-  _pc-power-board_, is the only one you need to build (excluding the upper part
-  with black background, which is built-in in the board, and voltage meters,
-  which have been added only for the purpose of the simulation). It should be
-  fairly simple: just be careful about the orientation of the lower
+* The <span style="color: #3c547e">blue</span> block in the lower right, named
+  _pc-power-board_, is the only one you need to build (excluding the rightmost
+  part with black background, which represents the ESP32 board, and voltage
+  meters, which have been added only for the purpose of the simulation). It
+  should be fairly simple: just be careful about the orientation of the lower
   photocoupler, which is horizontally flipped for clarity; as a general rule,
   photocouplers have a notch marking pin 1 which corresponds to the anode,
   represented as red dot in this picture:\
   <img src="images/photocoupler-wiring.png" height=50>\
   Here are the relevant circuit components:
   * `PWR_LED_GPIO_IN` represents the GPIO pin from which the power LED status is
-    received; the default setting, which can be changed at build time, is found
+    received by the ESP32; the default pin, which can be changed at build time,
+    is found inside file [`pc-power-board.yaml`](config/pc-power-board.yaml)
+  * `PWR_SW_GPIO_OUT` represents the GPIO pin used to trigger the power button
+    from the ESP32; the default pin, which can be changed a build time, is found
     inside file [`pc-power-board.yaml`](config/pc-power-board.yaml)
-  * `PWR_SW_GPIO_OUT` represents the GPIO pin used to trigget the power button;
-    the default setting, which can be changed a build time, is found inside file
-    [`pc-power-board.yaml`](config/pc-power-board.yaml)
   * _Power LED input_ is the two-wire interface that has to be connected _in
     series_ with the desktop computer chassis power LED: this wiring has been
     chosen to minimize the current drop, so that the chassis power LED is not
@@ -540,16 +536,16 @@ As you can see, the diagram consists of 3 blocks:
     it simply reverts to the original chassis power LED circuit
   * _Power button output_ is the two-wire interface that has to be connected _in
     parallel_ with the desktop chassis power button
-  * the switch in the blacked-out upper part is meant to simulate activation of
-    the GPIO pin controlling the power button: triggering it has the same effect
-    as pushing the computer's power button
+  * `SW3` inside the ESP32 board is meant to simulate activation of the GPIO pin
+    controlling the power button: triggering it has the same effect as pushing
+    the computer's power button
 
 This is all you need to know to build the `pc-power-board` circuit: read about
 the following blocks below only if you are interested in understanding further.
-* The <span style="color: #4e0c0c">red</span> block in the left side, named
+* The <span style="color: #9e2c2c">red</span> block in the left side, named
   _Motherboard circuit_, roughly represents the relevant internal motherboard
   logic. The following components can be recognized:
-  * `PWR_SW` and `PWR_SW1` represent the 2 chassis power button pins on the
+  * `PWR_SW` and `PWR_Gnd` represent the 2 chassis power button pins on the
     motherboard's front panel header
   * `PWR_LED+` and `PWR_LED-` represent the 2 chassis power LED pins on the
     motherboard's front panel header\
@@ -557,7 +553,7 @@ the following blocks below only if you are interested in understanding further.
     <img src="images/front_panel_connector-01.png" height=150>
     <img src="images/front_panel_connector-02.png" height=150>
   * `PWR_signal` represents the power button push status, as theoretically
-    reported to the motherboard
+    detected by the motherboard
   * `PWR_LED_signal` represents the power-on computer status, as theoretically
     reported by the motherboard; in the simulated circuit it's an interactive
     switch
@@ -566,7 +562,7 @@ the following blocks below only if you are interested in understanding further.
   * `SW1` is there for simulation purposes only; its function is explained below
   * `SW2` is there for simulation purposes only; it can be used to toggle
     insertion of the `pc-power-board` circuit in the chassis power LED circuit
-* The <span style="color: #144e0c">green</span> block in the upper part is only
+* The <span style="color: #148e0c">green</span> block in the upper part is only
   a temporary test circuit that I have used to measure the behavior of the
   `PWR_SW` and `PWR_LED` motherboard headers before building the final version
   of the `pc-power-board` circuit. Here are my findings:
@@ -661,7 +657,7 @@ this project:
 [pikvm]: https://pikvm.org/
 [circuitjs]: https://www.falstad.com/circuit/
 [circuitjs-offline]: https://www.falstad.com/circuit/offline/
-[live-circuit]: https://www.falstad.com/circuit/circuitjs.html?ctz=CQAgjCAMB0l3BWcMBMcUHYMGZIA4UA2ATmIxAUgoqoQFMBaMMAKAHMRCAWEXH73tkJQoLAE6ceYYikkhiwqtiEswhWcuELBw6bNkATOgDMAhgFcANgBcGlugfAiqMSKy6RyhfCEyzveLx4UiwAHr66XIEIUggQUrIASgD6AJYAdtbiFFw8DNiyMXnaVFwYkCwA7rwI+hiFKIF+otW1TfWcPs0VAA4UjTX+Pti1vCIQYPBTVf3tDYEjshXVAbyQ-MOjFeEj2OBRIFwosmBxh+CyAMIAFqYAznepdwA6dwAyAKIAIjMCx1LeXwoHjbQ6kEAMBDECjKCEIYQJEApax0O5ZABGELQgSYCNhQggoK4EGweAmxCQpJ4UkCAFkAPbWa50MTo+mmMQGV4AY1SYm55lSWWqBSU606C3FrHCKGkIGCvi4SDw5ERAGUAOrS3goPYoKG8LjQoiydUalAzco8Zp4OC+DrLEBWtY8W1ikHseV2jxUN2HArOFh3OTaAQBqgQMyWO50bJ+sC5L1Uf7jabhQiBDPgAQYeIXEAABQ1KU+X2SjzY6VMljCTuw0LAeGEGCb4Dw0MRKR6Vks5h6LEScgDAhcIg81FHMAQvx4fDkKdYKykMmzEZXjuBVG0mnkihmamTwNX9qW+8BzU3J9EauPtsVvtHkerMZEFuqB69x70omw5RyeQDIodTGZMZlFK9L26FhMXUYQmEgJAjQRQla1qWQmDAPZvHIDDSjbEAABVUWsHk+QFIUZkgjod3DSjxzDcUGBKMDGO0ICmL3VpEwDGjT0HdtIldbQSjHJRoD2SdoGnDwvB8OIhkzHxJn1IMITvb8GDvbonGsMRzFjDgmAGOcjIWIRAwkUyLhxMBjKWZB4AHCFbIWdCXOcUTeHEjyp1rBhcyBalrUwc5bJAG57keF47h6elKhZV50XMaxrHpdIWBvHdvx3bSqCjF9QJFNAXR1ZMHWyVZ5LBYQqsPUEML2AKGEIZtqXzLsez7GYrJMy850dBg+sYy8gIGkbE0qxMBvc9zBo6dyxvmgY5sKMLFtW002LCxdnIGZoevFR1SBORMBP2D1qmOigwuCaJtuyZ0qtu677LKCoOD9IDPvXFonSzL67VG1SroTHgrpTCMQF0-SZnBvBAiu2qWD6R6Vwwf6Vwk1MpjgS1xShWRHrWvGeCA9Hoimy1-sTcmKHXFgjiw+FnMBQhmcIMByEdP05z9H0fyzP1mmIMLwIgJAixLb5XgAcQLABJAB5ZJ5YAORYIQEZXRpAkmeGdCcCXi2STVZYV5XFYAVQIjWsys2b1IGcXC2NisqxrNByA-b8F3R85JeSUtnn7T3jxTcOfB4APSwYbqZuWmb6dD+2VyYFcPyj43NRYZP3P2n3x0zlJNR2qz9q08rqk0tc3Kd+nwiiYR9WiP2iDzMKCzihL3mlx50m7LIG7wJAEAwUmV1H1V807+KxES5LUvSV56WSgfoMODBoXT05oXUD101OFmvG0XE2rCy4yMFEiovpSxTGsVI0trKJ9AVKJjRVULZGD5+FWwBNDif3-lPMKsch4jxiIA6Io8v4Ql-qTY4YJxb6lgT-cI5RMxKnlNgfgBwaQgB6NyBgsVZ4MDZByAwsNtZHjhoEbmdpQbym0Iw+hh5XR2igpiXMSAFzrAgPTUkTgABihInCTDtEwJEqInjWFMOkbksYgA
+[live-circuit]: https://www.falstad.com/circuit/circuitjs.html?ctz=CQAgjCAMB0l3BWcMBMcUHYMGZIA4UA2ATmIxAUgoqoQFMBaMMAKAHMRjCRcAWT7tmzcqkFgCcB4YiilcoPYSzCFZwvFPXTZsgCZ0AZgEMArgBsALgzN1d4BaNitekcoXwhMs9xux5+rAAeFEhgvMQgeNjgCLIBsgBKAPoAlgB2FhIUvPwM2LIIOSAM8lS8GGIA7jz+nhgFKBpeUCzVsU31ID51smIADhSNPLFdHtgj0VQQYPCzrYMdDb4jVaO+kPzd470swX7kYRq8CNxgCBDxIADCABZGAM73KfcAOvcAMgCiACLz8igoAIyTyAlrBcIRBgICIIITFE4gS7JCx0e6ZABGxRUEAYaHAGEECHIYmCDHcNQgxH4fn4AQ0AFkAPYWG50cToxlGcS6N4AYxS4l5JhSmWq2x4GzWEoCu08hUiSEaVDwR3AsgAygB1ILDfhECB+KhEWlqkBalDzCp6zrEMA6TqrK3SzgE51iDhkQSSz2KEQte5ybjyfIKCDGMz3OhZGYeMCumOLUNzUlHZVHaKXAAKmuSX2+SSebDSRjMsqp3ABEVI0RQIaRST65jMJj6LASmlkpQciNo3ZgCD+Xv4-1BrGq8jAwMnsmnLWqjQ0wcIi5E81nAKB9p21XXnWazTE6u0kSNKpPoZA4cjCgtO+BeCmU+BYmwFWyuRDhWpahv83F+73B0WExVRuCYSAkHCbheAgElBlkJgwGidxyEQspwA0AAVVELD5AUhRFeYALUZceG3Twz0IakRhKVcxRo+Qv2KUp5iYkMtBDMR2xmFx8VODYpiGUQex4aBJgcaABxcNwPHObwPG6GYUAHAM8mEcByVxWNySmEALHEEwow4WiQVyYN1NELITLtDQTM45B4DbZjBAQrthN47AxL7STZTyFAIjjXIUDCfFyEuW4HieV57j6RlKjZN50RMCwLEZNIWCPLRZy0A8FCvOhf3otRJX-IDJG6OTEUYu0bzQXy8CQHBij8EBXXrRszGbVtqi0poEV69852KNANCYiqilWPJSOYBCtEqya5pqqCKBqsdkDPON+N4zahttOIVE4Gr5qyJ1KqiAoarKCp2BdbgmJ9E5hMdUj7tdJixADGYNvjfA+r9CB9MMtdfrlfizxg1cBlO4ECVG4FxKmWZHOqaHZFOy7LUlJjYcG57RqKHHoR2Xhay6fqVCoQgEUIOMWi0PaekiXgmm26hs1zH43gAcUzABJAB5JJeYAORYemloO-xfFqCAkHZpItW5vnBf5gBVTCxdI6yhiYU5yVlkB5cLYtSx6icdYnZ95hMjdho8W3JpG49rKt8EGs8KiKAwRVCDC01MzihKPk5p40kbTI3cgvAYWBcI4n9wPxES5LUrSN5GWS8PgMRDAqxnM4IlUfg4JppBdbceRdZNGqrnw4VcKixkzCMCwUjS2VmZ0WpmYiRo-Zql5Wzd6kQuZ8hsFpy4GA792EHlZnRqJRFTWn4f4Kq2XlOXgeh9ahTjkibBNmZ7eND6XkGFi+LxAYDkuV0YHYx+7bXVWBNGYZg9s+IbAY9OJCDgYx6k7W2A1lJ0TthoCmkDjwLXUtAtSFYERwKQWBEByDrZZRqgNGaQ0cHYKdtAuCX1PCSjjDWVw29ZDyzzIPWUzAIC1gOE1QE6Eao0J+KvLES80BgRmBQiIWYcwK01L5M4TRXxYkgIw3iQjkhczSA-YIxA8AQBpjOEGpdT4gE+OqTM+REqcm5MDcGB0GYQyGudFanYjqrXoRBJoeIvp6lJpcLU2AxZQJAAAMVgvYGMVAmAgASKiZ4FgjBpF5FGIAA
 
 [esphome]: https://esphome.io/
 [esphome-board-connection]: https://esphome.io/guides/physical_device_connection/#connecting-to-the-esp
