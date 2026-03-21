@@ -20,6 +20,7 @@ wifi:
     dns1: 8.8.8.8
 
 substitutions:
-  # The following input/output controlling GPIO pins are used by default
+  # The following input/output controlling GPIO pins are used by default.
+  # Remember to avoid using "strapping pins" (see https://esphome.io/guides/faq/#strapping-warnings)
   power_led_gpio_pin: GPIO18
   power_button_gpio_pin: GPIO26
