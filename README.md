@@ -381,9 +381,9 @@ the OTA (Over-The-Air) mechanism over Wi-Fi.
   <img src="images/web-esphome-04.png" height="200">\
   Take note of the IP address that has been assigned to the board (for example
   by checking the DHCP lease on your home router): you will need it later on. To
-  further confirm that the ESPHome firmware has been flashed successfully, you
-  should be able to access a simple web page exposed by the board itself:\
-  <img src="images/web-esphome-05.png" height="200">\
+  further confirm that the basic ESPHome firmware has been flashed successfully,
+  you should be able to access a simple web page exposed by the board itself:\
+  <img src="images/web-esphome-05.png" height="200">
 
 #### Flashing Using `esphome` via USB
 If a direct connection to the board via USB is available, any firmware can be
@@ -469,9 +469,10 @@ ways:
 
 #### Flashing Using `esphome` via Wi-Fi
 This method assumes that you have Wi-Fi access to the board, including knowing
-its IP address. Similarly to the case of [Flashing Using `esphome` via
-USB](#flashing-using-esphome-via-usb), the `esphome` utility is required, and it
-is assumed to use its readily usable Docker image.
+its IP address, and that the board is already running an ESPHome firmware (like
+the one used in this project). Similarly to the case of [Flashing Using
+`esphome` via USB](#flashing-using-esphome-via-usb), the `esphome` utility is
+required, and it is assumed to use its readily usable Docker image.
 
 The process is straightforward, and can be carried out using the following
 _one-liner_ ( :warning: once again, be prepared for a potentially long build
@@ -556,9 +557,9 @@ As you can see, the diagram consists of 3 blocks:
     controlling the power button: triggering it has the same effect as pushing
     the computer's power button
 
-This is all you need to know to build the `pc-power-board` circuit. Descriptions
-of the following block helps understand how the board is meant to be connected
-to the motherboard.
+This is all you need to know to build the `pc-power-board` circuit. The
+description of the following block helps understand how the board is meant to be
+connected to the motherboard.
 
 * The red block in the left side, named _Motherboard circuit_, roughly
   represents the relevant internal motherboard logic. The following components
