@@ -613,7 +613,8 @@ serial interface and the computer, thus allowing convenient debugging and
 re-flashing.
 
 Although not very refined, here is what the board may look like after being
-assembled and connected to the computer:
+assembled and connected to the computer (some of the wiring is hidden beyond or
+under the board):\
 <img style="display: block; margin: auto" src="images/assembled-board.png" width=400>
 
 
@@ -643,7 +644,7 @@ In order to control `pc-power-board` using OpenHAB you need to:
   turn to the _Online_ status and several Channels should be exposed; at least:
   * the power LED status channel
   * two channels for the power button (one for the momentary press and the other
-    for the long press)
+    for the long press)\
   <img src="images/openhab-thing-channels.png" width=500>
   :information_source: _Note_ &mdash; some of these
   channels may be hidden and require ticking the _Show advanced_ checkbox to be
@@ -675,10 +676,10 @@ projects covering the same use case. Here is a quick comparison, not meant to be
 exhaustive (only ESP-based projects are listed - no Arduinos):
 
 | Reference                                                        | Chipset | Requires soldering | Power source           | Source code    | Power LED monitoring     | Power button control | Switch component      | Reset button control | Control interface | 
-| :---:                                                            | :---:   | :---               | :---:                  | :---           | :---:                    | :---:                | :---                  | :---:                | :---              |
+| :---:                                                            | :---:   | :---:              | :---:                  | :---           | :---:                    | :---:                | :---:                 | :---:                | :---              |
 | [ESP8266 based PC power controller][ref01]                       | ESP8266 | Optional           | ATX supply             | C (Arduino)    | :white_check_mark:       | :white_check_mark:   | None (direct to GPIO) | :white_check_mark:   | Custom            |
 | [ESP32 Smart PC Power Controller][ref02]                         | ESP32   | No (breadboard)    | USB                    | C (Arduino)    | :x:                      | :white_check_mark:   | Relay                 | :x:                  | Web interface     |
-| [Wemos D1 Mini][ref03]                                           | ESP8266 | Yes                | USB                    | C (Arduino)    | :white_check_mark:       | :white_check_mark:   | Photocoupler          | :white_check_mark:   | Mobile app        |
+| [How to turn your computer on and off remotely][ref03]           | ESP8266 | Yes                | USB                    | C (Arduino)    | :white_check_mark:       | :white_check_mark:   | Photocoupler          | :white_check_mark:   | Mobile app        |
 | [Wake-On-ESP32][ref04]                                           | ESP32   | Optional           | USB                    | YAML (ESPHome) | :white_check_mark:       | :white_check_mark:   | Photocoupler          | :white_check_mark:   | Home Assistant    |
 | [ESPHome PC Power Control via Home Assistant][ref05]             | ESP8266 | Yes                | Motherboard USB header | YAML (ESPHome) | via reset button voltage | :white_check_mark:   | Transistor            | :x:                  | Home Assistant    |
 | [DIY out-of-band management: remote power button][ref06]         | ESP32   | No (breadboard)    | Motherboard USB header | YAML (ESPHome) | :x:                      | :white_check_mark:   | MOSFET                | :x:                  | MQTT              |
