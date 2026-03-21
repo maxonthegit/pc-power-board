@@ -644,7 +644,8 @@ In order to control `pc-power-board` using OpenHAB you need to:
   turn to the _Online_ status and several Channels should be exposed; at least:
   * the power LED status channel
   * two channels for the power button (one for the momentary press and the other
-    for the long press)\
+    for the long press)
+    
   <img src="images/openhab-thing-channels.png" width=500>
   :information_source: _Note_ &mdash; some of these
   channels may be hidden and require ticking the _Show advanced_ checkbox to be
