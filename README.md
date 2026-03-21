@@ -605,7 +605,7 @@ place, as detailed in the following block description.
     different resistance values ranging between `336Ω` and `500Ω`
 
 :electric_plug: Power to the `pc-power-board` can be supplied by connecting its
-USB port wither to a USB charger or directly to the desktop computer, provided
+USB port either to a USB charger or directly to the desktop computer, provided
 that it continuously provides `+5V` voltage not only when powered down, but
 particularly **also when AC power is restored after an outage**. The latter
 choice enables full control of the board by direct communication between its
