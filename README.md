@@ -15,12 +15,17 @@ the widely known home automation systems [Home Assistant][homeassistant] and
 
 As a result, using intuitive controls like switches and dashboards in the
 aforementioned home automation systems, it is possible to remotely check the
-actual status of the PC power LED as well as electrically activate its power
-button (which, in all respects, is equivalent to mechanically pushing it).
+actual status of the computer power LED as well as electrically activate its
+power button (which, in all respects, is equivalent to mechanically pushing it).
+All with on-premises software components and no cloud services involved.
 
 The whole setup requires limited skills and is extensively described in this
-guide. Due to my own technological setup, I will only be covering the case of
-OpenHAB.
+guide.\
+Based on my own technological setup, I will be covering the case of using
+OpenHAB as interface to control the board. Remote operation, even over the
+Internet, can be safely accomplished in a variety of ways, which are out of the
+scope of this documentation: essentially, secured IP reachability between the
+user and the board is required, and you may likely want to use a VPN for this.
 
 
 # :warning: Disclaimer :warning:
@@ -42,7 +47,8 @@ No reasons to alarm, but you know what you are doing.
   2. [Building the Circuit](#2-building-the-circuit)
   3. [Setting up Controls in OpenHAB](#3-setting-up-controls-in-openhab)
 
-* [References and Extensions](#references-and-extensions)
+* [Future Extensions](#future-extensions)
+* [References](#references)
 
 <br />
 
@@ -70,13 +76,13 @@ in the [Arch Linux Wake-on-LAN documentation][arch-linux-wol]:
   > Depending on the hardware, the network driver may have WoL switched off by
   > default
 
-In the end, care must be taken to consistently enable WoL (and test its
-operation before walking away from the target machine).
+In the end, care must be taken to consistently enable WoL and test its operation
+(before walking away from the target machine).
 
 _Reason #2_ &ndash; In some cases the NIC firmware may fail to initialize the
 physical port or just enter WoL listening mode after  power outages. In such
-cases, the only recovery action is to physically push the power button (which
-defeats the primary purpose of WoL).\
+cases, the only recovery action is to physically push the power button, which
+defeats the primary purpose of WoL.\
 Differently from _Reason #1_, this condition may not be avoidable with software
 settings: a NIC replacement (or addition) can be attempted, but with no
 guarantees of success. 
@@ -118,7 +124,7 @@ handy:
     if desired)
   * no interactions with public cloud services (unless intentionally set up in
     ways that exceed this documentation); can operate in the absence of an
-    Internet connection
+    Internet connection (i.e., over the local network)
   * integration with home automation systems ([Home Assistant][homeassistant],
     [OpenHAB][openhab]), enabling arbitrary routines (e.g., scheduled wake up or
     shutdown)
@@ -131,6 +137,9 @@ following use cases:
   * remote control of a laptop computer, or any other workstation that has no
     connections for an external physical power button and LED (some NUCs may
     fall in this case - but WoL usually works better for these devices)
+  * remote reporting of "fancy" power LED states (e.g., pulsing, fading): in
+    such cases the LED will be reported as fully bright or dark depending on
+    whether a voltage threshold is passed or not
   * remote video capture and/or simulation of input peripherals
     (keyboard/mouse): you may want to have a look at [PiKVM][pikvm] instead
 
@@ -183,18 +192,20 @@ on a set of mostly self-explaining YAML declaration files (which, of course, are
 part of this project). The file structure is as follows:
 * `pc-power-board.yaml` is the entry point which is meant to be processed by the
   `esphome` command line utility; it contains basic configuration settings, a
-  setup of build-time variables (which can be altered on the `esphome` command
-  line at the time of invoking it) and pointers to the other YAML files
+  setup of build-time variables and pointers to the other YAML files; since
+  variables can be conveniently altered by using `esphome` command line options,
+  this file is usually not meant to be edited
 * `secrets-template.yaml` contains a skeleton for user-specific security
   parameters for Wi-Fi access (PSK), ESPHome API encryption and OTA
   (Over-The-Air) firmware flash password protection; a copy of this file named
   `secrets.yaml` is meant to be edited to adapt it to your needs
 * `board-settings.yaml` applies board chipset settings as well as Wi-Fi, API
   encryption and OTA password protection settings obtained from file
-  `secrets.yaml`
+  `secrets.yaml`; this file is not meant to be edited
 * `sensors.yaml` is where the full board logic resides: it specifies the setup
   of GPIO pins and of the power switch logic and defines other useful "sensors"
-  to monitor the board health status
+  to monitor the board health status; this file is usually not meant to be
+  edited
 
 ### How to Flash the `pc-power-board` Firmware
 First of all, you need to adjust a few settings to customize the firmware image
@@ -257,8 +268,9 @@ described below.
 #### How to connect the ESP32 board via USB
 This guide assumes that the ESP32 board has a USB connector giving access to an
 internal USB-to-serial interface for accessing the basic board functions.
-* Connect the ESP32 board via USB to a PC or laptop: this will immediately power
-  the ESP32 board and provide access to its integrated USB-to-serial interface
+* Connect the ESP32 board via USB to a desktop computer or laptop: this will
+  immediately power the ESP32 board and provide access to its integrated
+  USB-to-serial interface
 * Check whether the board's serial adapter has been successfully recognized. The
   steps to do so vary depending on the operating system: in Windows you can
   check whether an additional `COM` port has appeared in the Device Manager
@@ -385,8 +397,8 @@ more convenient to use it via the readily available `esphome` Docker image.
 * Connect the board via USB (see [How to connect the ESP32 board via
   USB](#how-to-connect-the-esp32-board-via-usb))
 * Execute the following _one-liner_ to build and flash the complete
-  `pc-power-board` firmware image (:warning: be prepared, as build time may be
-  rather long, especially the first time):
+  `pc-power-board` firmware image ( :warning: be prepared, as build time
+  may be rather long, especially the first time):
   ```
   # Adjust the following environment variable assignments as needed
 
@@ -404,6 +416,8 @@ more convenient to use it via the readily available `esphome` Docker image.
   # the following extra -s options:
   #   -s power_led_gpio_pin GPIOXX
   #   -s power_button_gpio_pin GPIOXX
+  # In the absence, defaults are taken from file pc-power-board.yaml.
+  # Avoid using "strapping pins" (see https://esphome.io/guides/faq/#why-am-i-getting-a-warning-about-strapping-pins).
 
   sudo docker run --rm --privileged -v "${CONFIG_DIR}":/config --device=${SERIAL_DEVICE} -it ghcr.io/esphome/esphome \
         -s boardname ${BOARD_NAME} \
@@ -460,7 +474,7 @@ USB](#flashing-using-esphome-via-usb), the `esphome` utility is required, and it
 is assumed to use its readily usable Docker image.
 
 The process is straightforward, and can be carried out using the following
-_one-liner_ (:warning: once again, be prepared for a potentially long build
+_one-liner_ ( :warning: once again, be prepared for a potentially long build
 time):
 ```
 # Adjust the following environment variable assignments as needed
@@ -477,6 +491,8 @@ IP_GATEWAY=192.168.x.z
 # the following extra -s options:
 #   -s power_led_gpio_pin GPIOXX
 #   -s power_button_gpio_pin GPIOXX
+# In the absence, defaults are taken from file pc-power-board.yaml.
+# Avoid using "strapping pins" (see https://esphome.io/guides/faq/#why-am-i-getting-a-warning-about-strapping-pins).
 
 sudo docker run --rm -v "${CONFIG_DIR}":/config -it ghcr.io/esphome/esphome \
       -s boardname ${BOARD_NAME} \
@@ -513,22 +529,21 @@ repository includes the [circuit source file](pc-power-board.cjs1), to be used
 with the [standalone off-line version][circuitjs-offline] of the same simulator.
 
 As you can see, the diagram consists of 3 blocks:
-* The <span style="color: #3c547e">blue</span> block in the lower right, named
-  _pc-power-board_, is the only one you need to build (excluding the rightmost
-  part with black background, which represents the ESP32 board, and voltage
-  meters, which have been added only for the purpose of the simulation). It
-  should be fairly simple: just be careful about the orientation of the lower
-  photocoupler, which is horizontally flipped for clarity; as a general rule,
-  photocouplers have a notch marking pin 1 which corresponds to the anode,
-  represented as red dot in this picture:\
+* The blue block in the lower right, named _pc-power-board_, is the only one you
+  need to build (excluding the rightmost part with black background, which
+  represents the ESP32 board, and voltage meters, which have been added only for
+  the purpose of the simulation). It should be fairly simple: just be careful
+  about the orientation of the lower photocoupler, which is horizontally flipped
+  for clarity; as a general rule, photocouplers have a notch marking pin 1 which
+  corresponds to the anode, represented as red dot in this picture:\
   <img src="images/photocoupler-wiring.png" height=50>\
   Here are the relevant circuit components:
   * `PWR_LED_GPIO_IN` represents the GPIO pin from which the power LED status is
     received by the ESP32; the default pin, which can be changed at build time,
     is found inside file [`pc-power-board.yaml`](config/pc-power-board.yaml)
   * `PWR_SW_GPIO_OUT` represents the GPIO pin used to trigger the power button
-    from the ESP32; the default pin, which can be changed a build time, is found
-    inside file [`pc-power-board.yaml`](config/pc-power-board.yaml)
+    from the ESP32; the default pin, which can be changed at build time, is
+    found inside file [`pc-power-board.yaml`](config/pc-power-board.yaml)
   * _Power LED input_ is the two-wire interface that has to be connected _in
     series_ with the desktop computer chassis power LED: this wiring has been
     chosen to minimize the current drop, so that the chassis power LED is not
@@ -541,15 +556,19 @@ As you can see, the diagram consists of 3 blocks:
     controlling the power button: triggering it has the same effect as pushing
     the computer's power button
 
-This is all you need to know to build the `pc-power-board` circuit: read about
-the following blocks below only if you are interested in understanding further.
-* The <span style="color: #9e2c2c">red</span> block in the left side, named
-  _Motherboard circuit_, roughly represents the relevant internal motherboard
-  logic. The following components can be recognized:
+This is all you need to know to build the `pc-power-board` circuit. Descriptions
+of the following block helps understand how the board is meant to be connected
+to the motherboard.
+
+* The red block in the left side, named _Motherboard circuit_, roughly
+  represents the relevant internal motherboard logic. The following components
+  can be recognized:
   * `PWR_SW` and `PWR_Gnd` represent the 2 chassis power button pins on the
-    motherboard's front panel header
+    motherboard's front panel header; using jumper wires, they can be connected
+    to the `pc-power-board` as shown
   * `PWR_LED+` and `PWR_LED-` represent the 2 chassis power LED pins on the
-    motherboard's front panel header\
+    motherboard's front panel header; using jumper wires, they can be connected
+    to the `pc-power-board` as shown\
     Two typical front panel header layouts are shown below:\
     <img src="images/front_panel_connector-01.png" height=150>
     <img src="images/front_panel_connector-02.png" height=150>
@@ -563,10 +582,15 @@ the following blocks below only if you are interested in understanding further.
   * `SW1` is there for simulation purposes only; its function is explained below
   * `SW2` is there for simulation purposes only; it can be used to toggle
     insertion of the `pc-power-board` circuit in the chassis power LED circuit
-* The <span style="color: #148e0c">green</span> block in the upper part is only
-  a temporary test circuit that I have used to measure the behavior of the
-  `PWR_SW` and `PWR_LED` motherboard headers before building the final version
-  of the `pc-power-board` circuit. Here are my findings:
+
+Finally, ensuring safe voltages and currents and, therefore, choosing reasonable
+resistance values for the circuit design required some testing in the first
+place, as detailed in the following block description.
+
+* The green block in the upper part is only a temporary test circuit that I have
+  used to measure the behavior of the `PWR_SW` and `PWR_LED` motherboard headers
+  before building the final version of the `pc-power-board` circuit. Here are my
+  findings:
   * in the normally open state, `PWR_SW` headers output `+3.3V` on 3 out of 3
     motherboards I have tested; since the chassis power button is a mechanical
     switch, the motherboard must have an internal pull-up resistor driving the
@@ -581,15 +605,23 @@ the following blocks below only if you are interested in understanding further.
     different resistance values ranging between `336Ω` and `500Ω`
 
 :electric_plug: Power to the `pc-power-board` can be supplied by connecting its
-USB port to a USB charger or directly to the desktop PC, provided that the
-latter continuously provides `+5V` USB power **even when AC power is restored
-after an outage**.
+USB port wither to a USB charger or directly to the desktop computer, provided
+that it continuously provides `+5V` voltage not only when powered down, but
+particularly **also when AC power is restored after an outage**. The latter
+choice enables full control of the board by direct communication between its
+serial interface and the computer, thus allowing convenient debugging and
+re-flashing.
+
+Although not very refined, here is what the board may look like after being
+assembled and connected to the computer:
+<img style="display: block; margin: auto" src="images/assembled-board.png" width=400>
 
 
 ## 3. Setting up controls in OpenHAB
 This guide assumes that you are running your own in-house installation of
 [OpenHAB][openhab]: this is strongly advised to keep network communication with
-the ESP32 board as delimited as possible.
+the ESP32 board as delimited as possible (exposing the board to the Internet
+would be extremely insecure).
 
 In order to control `pc-power-board` using OpenHAB you need to:
 * Install the [ESPHome binding][openhab-esphome]; instructions can be found
@@ -612,43 +644,70 @@ In order to control `pc-power-board` using OpenHAB you need to:
   * the power LED status channel
   * two channels for the power button (one for the momentary press and the other
     for the long press)
-  
+  <img src="images/openhab-thing-channels.png" width=500>
   :information_source: _Note_ &mdash; some of these
   channels may be hidden and require ticking the _Show advanced_ checkbox to be
   exposed
+
 * Add Items to your house Model to map the discovered channels
+* Create Pages and/or Dashboards to your liking in order to keep the power LED
+  and switch handy
 
 
-# References and Extensions
-There are of course alternative approaches around to implement a custom remote
-power management circuit:
-* [WeMos ESP8266 Remote PC
-  Switch](https://www.hackster.io/zvonko-bockaj/wemos-esp8266-remote-pc-switch-062c7a)
-  is a very interesting project similar to `pc-power-board`, but with a few
-  challenging differences:
-  * it uses an ESP8266-based board instead of an ESP32 one
-  * it uses transistors instead of photocouplers; this also implies that there
-    must be a common ground between the custom board and the motherboard
-  * it is programmed in C using the Arduino IDE
-  * it leverages MQTT as an interface instead of the native ESPHome API
-* [PokyPow](https://www.crowdsupply.com/ajfriesen/pokypow) is a custom
-  ESPHome-based board which has been around for a while under a crowdfunding
-  campaign
-* [This thread on the Arduino forum](https://forum.arduino.cc/t/solved-power-pc-by-mimicking-the-on-off-btn-optocoupler-transistor-relay/644022)
-  discusses the convenience of choosing relays, transistors or optocouplers to
-  separate the desktop computer circuitry from the control board
-  
+# Future Extensions  
 `pc-power-board` can of course be improved. The following list suggests a few
 examples, for which details are not provided since they are out of the scope of
 this project:
 * Add control of other system buttons and knobs: for example, the reset button,
   (part of) the internal case lighting, a case intrusion detection switch or
   even seleced keyboard buttons
+* Implement a watchdog that power cycles a workstation in case of hard lock
 * Adapt the circuitry to operate a device different from a desktop computer
 * Turn to wired Ethernet connectivity, which can be added to an ESP32
   development board by suitable expansion modules: this can be helpful in case
   there is no Wi-Fi coverage or to improve reliability altogether (although I
   have never experienced any issues with Wi-Fi over several months of operation)
+
+
+# References
+Of course I am not the only one with this need, and there are many other
+projects covering the same use case. Here is a quick comparison, not meant to be
+exhaustive (only ESP-based projects are listed - no Arduinos):
+
+| Reference                                                        | Chipset | Requires soldering | Power source           | Source code    | Power LED monitoring     | Power button control | Switch component      | Reset button control | Control interface | 
+| :---:                                                            | :---:   | :---               | :---:                  | :---           | :---:                    | :---:                | :---                  | :---:                | :---              |
+| [ESP8266 based PC power controller][ref01]                       | ESP8266 | Optional           | ATX supply             | C (Arduino)    | :white_check_mark:       | :white_check_mark:   | None (direct to GPIO) | :white_check_mark:   | Custom            |
+| [ESP32 Smart PC Power Controller][ref02]                         | ESP32   | No (breadboard)    | USB                    | C (Arduino)    | :x:                      | :white_check_mark:   | Relay                 | :x:                  | Web interface     |
+| [Wemos D1 Mini][ref03]                                           | ESP8266 | Yes                | USB                    | C (Arduino)    | :white_check_mark:       | :white_check_mark:   | Photocoupler          | :white_check_mark:   | Mobile app        |
+| [Wake-On-ESP32][ref04]                                           | ESP32   | Optional           | USB                    | YAML (ESPHome) | :white_check_mark:       | :white_check_mark:   | Photocoupler          | :white_check_mark:   | Home Assistant    |
+| [ESPHome PC Power Control via Home Assistant][ref05]             | ESP8266 | Yes                | Motherboard USB header | YAML (ESPHome) | via reset button voltage | :white_check_mark:   | Transistor            | :x:                  | Home Assistant    |
+| [DIY out-of-band management: remote power button][ref06]         | ESP32   | No (breadboard)    | Motherboard USB header | YAML (ESPHome) | :x:                      | :white_check_mark:   | MOSFET                | :x:                  | MQTT              |
+| [Remote_PC_Switcher][ref07]                                      | ESP32   | No (breadboard)    | ATX supply             | C (ESP-IDF)    | :x:                      | :white_check_mark:   | Transistor            | :x:                  | Custom            |
+| [ESP32-based Smart Switch for PC without WOL][ref08]             | ESP32   | No                 | Motherboard USB header | YAML (ESPHome) | :x:                      | :white_check_mark:   | Relay                 | :x:                  | Home Assistant    |
+| [WeMos ESP8266 Remote PC Switch][ref09]                          | ESP8266 | No (breadboard)    | USB                    | C (Arduino)    | :white_check_mark:       | :white_check_mark:   | Transistor            | :x:                  | MQTT              |
+
+Although less on focus, the following pointers may also be relevant:
+* [I wake my home PC from anywhere using an ESP32 and
+  MQTT](https://www.xda-developers.com/i-wake-my-home-pc-from-anywhere-using-an-esp32-and-mqtt/)
+  is a guide describing how to use an ESP32 board to send WoL packets when
+  triggered via MQTT by a mobile application.
+* [Wake-on-LAN_ESP32](https://github.com/sergio-isidoro/Wake-on-LAN_ESP32) is
+  similar, but also supports sending special UDP packets to shut down the target
+  computer (a custom listener software is required for this), and such actions
+  can be triggered by pressing a physical button connected to the board.
+* [This thread on the Arduino
+  forum](https://forum.arduino.cc/t/solved-power-pc-by-mimicking-the-on-off-btn-optocoupler-transistor-relay/644022)
+  discusses the convenience of choosing relays, transistors or optocouplers to
+  separate the desktop computer circuitry from the control board.
+* [Another thread on the Arduino
+  forum](https://forum.arduino.cc/t/powering-on-pc-with-esp/1201458) discusses
+  the use case of an ESP8266-based implementation to control power LED, power
+  button and reset button. The origin of this implementation is found in [a
+  blog](https://www.ajfriesen.com/) describing several revisions of a custom
+  "`pc-switch`" board running ESPHome, which has later been renamed to
+  [PokyPow](https://www.crowdsupply.com/ajfriesen/pokypow), a project supported
+  by a crowdfunding campaign.
+
 
 
 
@@ -687,3 +746,13 @@ this project:
 
 [putty]: https://putty.software/
 [modern-standby-wake]: https://learn.microsoft.com/en-us/windows-hardware/design/device-experiences/modern-standby-wake-sources
+
+[ref01]: https://github.com/SilverFire/esp8266-pc-power-control
+[ref02]: https://github.com/fnskye/ESP32PCRemote
+[ref03]: https://noisycarlos.com/project/how-to-turn-your-computer-on-and-off-remotely/
+[ref04]: https://www.reddit.com/r/esp32/comments/17c5n9r/power_on_pc_with_esp32/
+[ref05]: https://github.com/Erriez/ESPHomePCPowerControlHomeAssistant
+[ref06]: https://michael.stapelberg.ch/posts/2022-10-09-remote-power-button/
+[ref07]: https://github.com/epic-tetus/Remote_PC_Switcher?tab=readme-ov-file
+[ref08]: https://aarongorka.com/blog/esp32-based-smart-switch-for-pc-without-wol/
+[ref09]: https://www.hackster.io/zvonko-bockaj/wemos-esp8266-remote-pc-switch-062c7a
