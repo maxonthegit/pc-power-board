@@ -538,7 +538,7 @@ As you can see, the diagram consists of 3 blocks:
   for clarity; as a general rule, photocouplers have a notch marking pin 1 which
   corresponds to the anode, represented as red dot in this picture:\
   <img src="images/photocoupler-wiring.png" height=50>\
-  Here are the relevant circuit components:
+  Here are the relevant circuit interfaces:
   * `PWR_LED_GPIO_IN` represents the GPIO pin from which the power LED status is
     received by the ESP32; the default pin, which can be changed at build time,
     is found inside file [`pc-power-board.yaml`](config/pc-power-board.yaml)
@@ -680,15 +680,17 @@ exhaustive (only ESP-based projects are listed - no Arduinos):
 
 | Reference                                                        | Chipset | Requires soldering | Power source           | Source code    | Power LED monitoring     | Power button control | Switch component      | Reset button control | Control interface | 
 | :---:                                                            | :---:   | :---:              | :---:                  | :---           | :---:                    | :---:                | :---:                 | :---:                | :---              |
-| [ESP8266 based PC power controller][ref01]                       | ESP8266 | Optional           | ATX supply             | C (Arduino)    | :white_check_mark:       | :white_check_mark:   | None (direct to GPIO) | :white_check_mark:   | Custom            |
-| [ESP32 Smart PC Power Controller][ref02]                         | ESP32   | No (breadboard)    | USB                    | C (Arduino)    | :x:                      | :white_check_mark:   | Relay                 | :x:                  | Web interface     |
-| [How to turn your computer on and off remotely][ref03]           | ESP8266 | Yes                | USB                    | C (Arduino)    | :white_check_mark:       | :white_check_mark:   | Photocoupler          | :white_check_mark:   | Mobile app        |
-| [Wake-On-ESP32][ref04]                                           | ESP32   | Optional           | USB                    | YAML (ESPHome) | :white_check_mark:       | :white_check_mark:   | Photocoupler          | :white_check_mark:   | Home Assistant    |
-| [ESPHome PC Power Control via Home Assistant][ref05]             | ESP8266 | Yes                | Motherboard USB header | YAML (ESPHome) | via reset button voltage | :white_check_mark:   | Transistor            | :x:                  | Home Assistant    |
-| [DIY out-of-band management: remote power button][ref06]         | ESP32   | No (breadboard)    | Motherboard USB header | YAML (ESPHome) | :x:                      | :white_check_mark:   | MOSFET                | :x:                  | MQTT              |
-| [Remote_PC_Switcher][ref07]                                      | ESP32   | No (breadboard)    | ATX supply             | C (ESP-IDF)    | :x:                      | :white_check_mark:   | Transistor            | :x:                  | Custom            |
-| [ESP32-based Smart Switch for PC without WOL][ref08]             | ESP32   | No                 | Motherboard USB header | YAML (ESPHome) | :x:                      | :white_check_mark:   | Relay                 | :x:                  | Home Assistant    |
-| [WeMos ESP8266 Remote PC Switch][ref09]                          | ESP8266 | No (breadboard)    | USB                    | C (Arduino)    | :white_check_mark:       | :white_check_mark:   | Transistor            | :x:                  | MQTT              |
+| _This project_                                                   | ESP32   | No (breadboard)    | USB                    | YAML (ESPHome) | :white_check_mark:       | :white_check_mark:   | Photocoupler          | :x:                  | OpenHAB           |
+| [Fence (Poor man's IPMI)][ref01]                                 | ESP8266 | No (custom PCB)    | USB (?)                | C (Arduino)    | :white_check_mark:       | :white_check_mark:   | Photocoupler          | :x:                  | Web interface     |
+| [ESP8266 based PC power controller][ref02]                       | ESP8266 | Optional           | ATX supply             | C (Arduino)    | :white_check_mark:       | :white_check_mark:   | None (direct to GPIO) | :white_check_mark:   | Custom            |
+| [ESP32 Smart PC Power Controller][ref03]                         | ESP32   | No (breadboard)    | USB                    | C (Arduino)    | :x:                      | :white_check_mark:   | Relay                 | :x:                  | Web interface     |
+| [How to turn your computer on and off remotely][ref04]           | ESP8266 | Yes                | USB                    | C (Arduino)    | :white_check_mark:       | :white_check_mark:   | Photocoupler          | :white_check_mark:   | Mobile app        |
+| [Wake-On-ESP32][ref05]                                           | ESP32   | Optional           | USB                    | YAML (ESPHome) | :white_check_mark:       | :white_check_mark:   | Photocoupler          | :white_check_mark:   | Home Assistant    |
+| [ESPHome PC Power Control via Home Assistant][ref06]             | ESP8266 | Yes                | Motherboard USB header | YAML (ESPHome) | via reset button voltage | :white_check_mark:   | Transistor            | :x:                  | Home Assistant    |
+| [DIY out-of-band management: remote power button][ref07]         | ESP32   | No (breadboard)    | Motherboard USB header | YAML (ESPHome) | :x:                      | :white_check_mark:   | MOSFET                | :x:                  | MQTT              |
+| [Remote_PC_Switcher][ref08]                                      | ESP32   | No (breadboard)    | ATX supply             | C (ESP-IDF)    | :x:                      | :white_check_mark:   | Transistor            | :x:                  | Custom            |
+| [ESP32-based Smart Switch for PC without WOL][ref09]             | ESP32   | No                 | Motherboard USB header | YAML (ESPHome) | :x:                      | :white_check_mark:   | Relay                 | :x:                  | Home Assistant    |
+| [WeMos ESP8266 Remote PC Switch][ref10]                          | ESP8266 | No (breadboard)    | USB                    | C (Arduino)    | :white_check_mark:       | :white_check_mark:   | Transistor            | :x:                  | MQTT              |
 
 Although less on focus, the following pointers may also be relevant:
 * [I wake my home PC from anywhere using an ESP32 and
@@ -751,12 +753,13 @@ Although less on focus, the following pointers may also be relevant:
 [putty]: https://putty.software/
 [modern-standby-wake]: https://learn.microsoft.com/en-us/windows-hardware/design/device-experiences/modern-standby-wake-sources
 
-[ref01]: https://github.com/SilverFire/esp8266-pc-power-control
-[ref02]: https://github.com/fnskye/ESP32PCRemote
-[ref03]: https://noisycarlos.com/project/how-to-turn-your-computer-on-and-off-remotely/
-[ref04]: https://www.reddit.com/r/esp32/comments/17c5n9r/power_on_pc_with_esp32/
-[ref05]: https://github.com/Erriez/ESPHomePCPowerControlHomeAssistant
-[ref06]: https://michael.stapelberg.ch/posts/2022-10-09-remote-power-button/
-[ref07]: https://github.com/epic-tetus/Remote_PC_Switcher?tab=readme-ov-file
-[ref08]: https://aarongorka.com/blog/esp32-based-smart-switch-for-pc-without-wol/
-[ref09]: https://www.hackster.io/zvonko-bockaj/wemos-esp8266-remote-pc-switch-062c7a
+[ref01]: https://github.com/alessandrocarminati/fence-dev
+[ref02]: https://github.com/SilverFire/esp8266-pc-power-control
+[ref03]: https://github.com/fnskye/ESP32PCRemote
+[ref04]: https://noisycarlos.com/project/how-to-turn-your-computer-on-and-off-remotely/
+[ref05]: https://www.reddit.com/r/esp32/comments/17c5n9r/power_on_pc_with_esp32/
+[ref06]: https://github.com/Erriez/ESPHomePCPowerControlHomeAssistant
+[ref07]: https://michael.stapelberg.ch/posts/2022-10-09-remote-power-button/
+[ref08]: https://github.com/epic-tetus/Remote_PC_Switcher?tab=readme-ov-file
+[ref09]: https://aarongorka.com/blog/esp32-based-smart-switch-for-pc-without-wol/
+[ref10]: https://www.hackster.io/zvonko-bockaj/wemos-esp8266-remote-pc-switch-062c7a
